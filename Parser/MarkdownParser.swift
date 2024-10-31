@@ -1,48 +1,23 @@
-//
-//  MarkdownParser.swift
-//  MarkdownKit
-//
-//  Created by Matthias Zenger on 03/05/2019.
-//  Copyright © 2019-2020 Google LLC.
-//
-//  Licensed under the Apache License, Version 2.0 (the "License");
-//  you may not use this file except in compliance with the License.
-//  You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-//  Unless required by applicable law or agreed to in writing, software
-//  distributed under the License is distributed on an "AS IS" BASIS,
-//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//  See the License for the specific language governing permissions and
-//  limitations under the License.
-//
-
 import Foundation
 
+/// `MarkdownParser`对象用于解析表示为字符串的 Markdown 文本。
+/// `MarkdownParser`对象本身定义了解析器的配置。
+/// 从某种意义上说，它是无状态的，因为它可以用于解析许多输入字符串。
+/// 这是通过`parse`函数完成的。
+/// `parse`为给定的输入字符串返回表示 Markdown 文本的抽象语法树。
 ///
-/// `MarkdownParser` objects are used to parse Markdown text represented as a string.
-/// The `MarkdownParser` object itself defines the configuration of the parser. It is
-/// stateless in the sense that it can be used for parsing many input strings. This is
-/// done via the `parse` function. `parse` returns an abstract syntac tree representing
-/// the Markdown text for the given input string.
+/// `MarkdownParser`对象的`parse`方法将输入字符串的解析委托给两种类型的处理器：
+/// 一个`BlockParser`对象和一个`InlineTransformer`对象。
+/// `BlockParser`解析 Markdown 块结构，返回一个抽象语法树，忽略内联标记。
+/// `InlineTransformer`对象用于解析 Markdown 块文本中的特定类型的内联标记，
+/// 用表示标记的抽象语法树替换匹配的文本。
 ///
-/// The `parse` method of the `MarkdownParser` object delegates parsing of the input
-/// string to two types of processors: a `BlockParser` object and an `InlineTransformer`
-/// object. A `BlockParser` parses the Markdown block structure returning an abstract
-/// syntax tree ignoring inline markup. An `InlineTransformer` object is used to parse
-/// a particular type of inline markup within text of Markdown blocks, replacing the
-/// matching text with an abstract syntax tree representing the markup.
-///
-/// The `parse` method of `MarkdownParser` operates in two phases: in the first phase,
-/// the block structure of an input string is identified via the `BlockParser`s. In the
-/// second phase, the block structure gets traversed and markup within raw text gets
-/// replaced with a structured representation.
-///
+/// `MarkdownParser`的`parse`方法分两个阶段操作：
+/// 在第一阶段，通过`BlockParser`识别输入字符串的块结构。
+/// 在第二阶段，遍历块结构，并将原始文本中的标记替换为结构化表示。
 open class MarkdownParser {
     
     ///默认的块解析器列表。此列表的顺序很重要。
-    /// The default list of block parsers. The order of this list matters.
     open class var defaultBlockParsers: [BlockParser.Type] {
         return self.blockParsers
     }
@@ -62,7 +37,7 @@ open class MarkdownParser {
         ThematicBreakParser.self
     ]
     
-    /// The default list of inline transformers. The order of this list matters.
+    /// 默认的内联转换器列表。此列表的顺序很重要。
     open class var defaultInlineTransformers: [InlineTransformer.Type] {
         return self.inlineTransformers
     }
@@ -75,62 +50,67 @@ open class MarkdownParser {
         EscapeTransformer.self
     ]
     
-    /// Defines a default implementation
+    /// 定义了一个默认实现
     open class var standard: MarkdownParser {
         return self.singleton
     }
     
     private static let singleton: MarkdownParser = MarkdownParser()
     
-    /// A custom list of block parsers; if this is provided via the constructor, it overrides
-    /// the `defaultBlockParsers`.
+    /// 自定义的块解析器列表；如果通过构造函数提供此列表，它将覆盖`defaultBlockParsers`。
     private let customBlockParsers: [BlockParser.Type]?
     
-    /// A custom list of inline transformers; if this is provided via the constructor, it overrides
-    /// the `defaultInlineTransformers`.
+    /// 自定义的内联转换器列表；如果通过构造函数提供此列表，它将覆盖`defaultInlineTransformers`。
     private let customInlineTransformers: [InlineTransformer.Type]?
     
-    /// Block parsing gets delegated to a stateful `DocumentParser` object which implements a
-    /// protocol for invoking the `BlockParser` objects that its initializer is creating based
-    /// on the types provided in the `blockParsers` parameter.
+    /// 块解析被委托给一个有状态的`DocumentParser`对象，该对象实现了一种协议，用于调用其初始化器根据`blockParsers`参数中提供的类型创建的`BlockParser`对象。
     public func documentParser(input: String) -> DocumentParser {
         return self.documentParser(blockParsers: self.customBlockParsers ??
                                    type(of: self).defaultBlockParsers,
                                    input: input)
     }
     
-    /// Factory method to customize document parsing in subclasses.
-    open func documentParser(blockParsers: [BlockParser.Type], input: String) -> DocumentParser {
-        return DocumentParser(blockParsers: blockParsers, input: input)
+    /// 用于在子类中自定义文档解析的工厂方法
+    open func documentParser(
+        blockParsers: [BlockParser.Type],
+        input: String
+    ) -> DocumentParser {
+        return DocumentParser(
+            blockParsers: blockParsers,
+            input: input
+        )
     }
     
-    /// Inline parsing is performed via a stateless `InlineParser` object which implements a
-    /// protocol for invoking the `InlineTransformer` objects. Since the inline parser is stateless,
-    /// a single object gets created lazily and reused for parsing all input.
-    public func inlineParser(input: Block) -> InlineParser {
-        return self.inlineParser(inlineTransformers: self.customInlineTransformers ??
+    /// 内联解析是通过无状态的`InlineParser`对象执行的，该对象实现了一种协议，用于调用`InlineTransformer`对象。由于内联解析器是无状态的，因此会延迟创建单个对象，并在解析所有输入时重复使用。
+    public func inlineParser(input: MarkdownBlock) -> InlineParser {
+        return self.inlineParser(
+            inlineTransformers: self.customInlineTransformers ??
                                  type(of: self).defaultInlineTransformers,
-                                 input: input)
+            input: input
+        )
     }
     
-    /// Factory method to customize inline parsing in subclasses.
-    open func inlineParser(inlineTransformers: [InlineTransformer.Type],
-                           input: Block) -> InlineParser {
-        return InlineParser(inlineTransformers: inlineTransformers, input: input)
+    /// 用于在子类中自定义内联解析的工厂方法
+    open func inlineParser(
+        inlineTransformers: [InlineTransformer.Type],
+        input: MarkdownBlock
+    ) -> InlineParser {
+        return InlineParser(
+            inlineTransformers: inlineTransformers,
+            input: input
+        )
     }
     
-    /// Constructor of `MarkdownParser` objects; it takes a list of block parsers, a list of
-    /// inline transformers as well as an input string as its parameters.
+    /// `MarkdownParser`对象的构造函数；它接受一个块解析器列表、一个内联转换器列表以及一个输入字符串作为参数。
     public init(blockParsers: [BlockParser.Type]? = nil,
                 inlineTransformers: [InlineTransformer.Type]? = nil) {
         self.customBlockParsers = blockParsers
         self.customInlineTransformers = inlineTransformers
     }
     
-    /// Invokes the parser and returns an abstract syntx tree of the Markdown syntax.
-    /// If `blockOnly` is set to `true` (default is `false`), only the block parsers are
-    /// invoked and no inline parsing gets performed.
-    public func parse(_ str: String, blockOnly: Bool = false) -> Block {
+    /// 调用解析器并返回 Markdown 语法的抽象语法树
+    /// 如果 `blockOnly` 设置为 `true`（默认为 `false`），则仅调用块解析器，不执行内联解析。
+    public func parse(_ str: String, blockOnly: Bool = false) -> MarkdownBlock {
         let doc = self.documentParser(input: str).parse()
         if blockOnly {
             return doc

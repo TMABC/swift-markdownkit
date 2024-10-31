@@ -1,46 +1,22 @@
-//
-//  TextFragment.swift
-//  MarkdownKit
-//
-//  Created by Matthias Zenger on 14/07/2019.
-//  Copyright © 2019-2021 Google LLC.
-//
-//  Licensed under the Apache License, Version 2.0 (the "License");
-//  you may not use this file except in compliance with the License.
-//  You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-//  Unless required by applicable law or agreed to in writing, software
-//  distributed under the License is distributed on an "AS IS" BASIS,
-//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//  See the License for the specific language governing permissions and
-//  limitations under the License.
-//
-
 import Foundation
 
-///
-/// In MarkdownKit, text with markup is represented as a sequence of `TextFragment` objects.
-/// Each `TextFragment` enumeration variant represents one form of inline markup. Since
-/// markup can be arbitrarily nested, this is a recursive data structure (via struct `Text`).
-///
+/// 在 MarkdownKit 中，带有标记的文本被表示为一系列`MarkdownTextFragment`对象的序列。每个`MarkdownTextFragment`枚举变体代表一种内联标记形式。由于标记可以任意嵌套，所以这是一个递归数据结构（通过结构体`MarkdownText`）。
 public enum MarkdownTextFragment: Equatable, CustomStringConvertible, CustomDebugStringConvertible {
     case text(Substring)
     case code(Substring)
     case emph(MarkdownText)
     case strong(MarkdownText)
     case link(MarkdownText, String?, String?)
-    case autolink(AutolinkType, Substring)
+    case autolink(MarkdownAutolinkType, Substring)
     case image(MarkdownText, String?, String?)
     case html(Substring)
     case delimiter(Character, Int, DelimiterRunType)
     case softLineBreak
     case hardLineBreak
-    case custom(CustomTextFragment)
+    case custom(MarkdownCustomTextFragment)
     
-    /// Returns a description of this `TextFragment` object as a string as if the text would be
-    /// represented in Markdown.
+    /// 返回此`MarkdownTextFragment`对象的描述，以字符串形式呈现，
+    /// 就像文本将以 Markdown 形式表示一样。
     public var description: String {
         switch self {
         case .text(let str):
@@ -74,8 +50,8 @@ public enum MarkdownTextFragment: Equatable, CustomStringConvertible, CustomDebu
         }
     }
     
-    /// Returns a raw description of this `TextFragment` object as a string, i.e. as if the text
-    /// fragment would be represented in Markdown but ignoring all markup.
+    /// 返回此`MarkdownTextFragment`对象的原始描述，
+    /// 即如果文本片段以 Markdown 形式表示，但忽略所有标记。
     public var rawDescription: String {
         switch self {
         case .text(let str):
@@ -109,8 +85,8 @@ public enum MarkdownTextFragment: Equatable, CustomStringConvertible, CustomDebu
         }
     }
     
-    /// Returns a raw description of this `TextFragment` object as a string in which all
-    /// markup gets ignored.
+    /// 返回此`MarkdownTextFragment`对象的原始描述，
+    /// 作为一个字符串，其中所有标记都被忽略
     public var string: String {
         switch self {
         case .html(_):
@@ -126,7 +102,7 @@ public enum MarkdownTextFragment: Equatable, CustomStringConvertible, CustomDebu
         }
     }
     
-    /// Returns a debug description of this `TextFragment` object.
+    /// 返回此`MarkdownTextFragment`对象的调试描述。
     public var debugDescription: String {
         switch self {
         case .text(let str):
@@ -158,7 +134,7 @@ public enum MarkdownTextFragment: Equatable, CustomStringConvertible, CustomDebu
         }
     }
     
-    /// Compares two given text fragments for equality.
+    /// 比较两个给定的文本片段是否相等
     public static func == (lhs: MarkdownTextFragment, rhs: MarkdownTextFragment) -> Bool {
         switch (lhs, rhs) {
         case (.text(let llstr), .text(let rstr)):
@@ -191,10 +167,8 @@ public enum MarkdownTextFragment: Equatable, CustomStringConvertible, CustomDebu
     }
 }
 
-///
-/// Represents an autolink type.
-///
-public enum AutolinkType: Equatable, CustomStringConvertible, CustomDebugStringConvertible {
+/// 表示自动链接类型。
+public enum MarkdownAutolinkType: Equatable, CustomStringConvertible, CustomDebugStringConvertible {
     case uri
     case email
     
@@ -212,10 +186,8 @@ public enum AutolinkType: Equatable, CustomStringConvertible, CustomDebugStringC
     }
 }
 
-///
-/// Lines are arrays of substrings.
-///
-public typealias Lines = ContiguousArray<Substring>
+/// 行是子字符串数组
+public typealias MarkdownLines = ContiguousArray<Substring>
 
 /// 每个分隔符运行被分类为一组类型，这些类型通过`DelimiterRunType`结构体来表示。
 public struct DelimiterRunType: OptionSet, CustomStringConvertible {

@@ -1,37 +1,12 @@
-//
-//  BlockParser.swift
-//  MarkdownKit
-//
-//  Created by Matthias Zenger on 01/05/2019.
-//  Copyright © 2019 Google LLC.
-//
-//  Licensed under the Apache License, Version 2.0 (the "License");
-//  you may not use this file except in compliance with the License.
-//  You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-//  Unless required by applicable law or agreed to in writing, software
-//  distributed under the License is distributed on an "AS IS" BASIS,
-//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//  See the License for the specific language governing permissions and
-//  limitations under the License.
-//
-
 import Foundation
 
-///
-/// A `BlockParser` parses one particular type of Markdown blocks. Class `BlockParser` defines
-/// a framework for such block parsers. Every different block type comes with its own subclass
-/// of `BlockParser`.
-///
+/// `BlockParser` 解析一种特定类型的 Markdown 块。类`BlockParser`定义了此类块解析器的框架。每种不同的块类型都有其自己的`BlockParser`子类
 open class BlockParser {
-
-  /// The result of calling the `parse` method.
+  /// 调用`parse`方法的结果
   public enum ParseResult {
     case none
-    case block(Block)
-    case container((Container) -> Container)
+    case block(MarkdownBlock)
+    case container((MarkdownContainer) -> MarkdownContainer)
   }
 
   unowned let docParser: DocumentParser

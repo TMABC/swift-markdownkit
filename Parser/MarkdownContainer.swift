@@ -1,17 +1,19 @@
 import Foundation
 
-/// 一个`Container`包含一系列正在被解析的块。
-/// `Container`可以嵌套。子类`NestedContainer`实现了一个嵌套容器，即具有一个封闭容器的容器。
+/// 一个`MarkdownContainer`包含一系列正在被解析的块。
+/// `MarkdownContainer`可以嵌套。子类`MarkdownNestedContainer`实现了一个嵌套容器，即具有一个封闭容器的容器。
 open class MarkdownContainer: CustomDebugStringConvertible {
-    public var content: [MarkDownBlock] = []
+    public var content: [MarkdownBlock] = []
     
-    open func makeBlock(_ docParser: DocumentParser) -> MarkDownBlock {
+    open func makeBlock(_ docParser: DocumentParser) -> MarkdownBlock {
         return .document(docParser.bundle(blocks: self.content))
     }
     
-    internal func parseIndent(input: String,
-                              startIndex: String.Index,
-                              endIndex: String.Index) -> (String.Index, MarkdownContainer) {
+    internal func parseIndent(
+        input: String,
+        startIndex: String.Index,
+        endIndex: String.Index
+    ) -> (String.Index, MarkdownContainer) {
         return (startIndex, self)
     }
     
@@ -28,8 +30,8 @@ open class MarkdownContainer: CustomDebugStringConvertible {
     }
 }
 
-/// `NestedContainer`表示具有"outer" 容器的容器。
-open class NestedContainer: MarkdownContainer {
+/// `MarkdownNestedContainer`表示具有"outer" 容器的容器。
+open class MarkdownNestedContainer: MarkdownContainer {
     internal let outer: MarkdownContainer
     
     public init(outer: MarkdownContainer) {
@@ -40,19 +42,25 @@ open class NestedContainer: MarkdownContainer {
         return false
     }
     
-    open func skipIndent(input: String,
-                         startIndex: String.Index,
-                         endIndex: String.Index) -> String.Index? {
+    open func skipIndent(
+        input: String,
+        startIndex: String.Index,
+        endIndex: String.Index
+    ) -> String.Index? {
         return startIndex
     }
     
-    open override func makeBlock(_ docParser: DocumentParser) -> MarkDownBlock {
+    open override func makeBlock(
+        _ docParser: DocumentParser
+    ) -> MarkdownBlock {
         preconditionFailure("makeBlock() not defined")
     }
     
-    internal final override func parseIndent(input: String,
-                                             startIndex: String.Index,
-                                             endIndex: String.Index) -> (String.Index, MarkdownContainer) {
+    internal final override func parseIndent(
+        input: String,
+        startIndex: String.Index,
+        endIndex: String.Index
+    ) -> (String.Index, MarkdownContainer) {
         let (index, container) = self.outer.parseIndent(input: input,
                                                         startIndex: startIndex,
                                                         endIndex: endIndex)
@@ -65,7 +73,9 @@ open class NestedContainer: MarkdownContainer {
         return (res, self)
     }
     
-    internal final override func outermostIndentRequired(upto container: MarkdownContainer) -> MarkdownContainer? {
+    internal final override func outermostIndentRequired(
+        upto container: MarkdownContainer
+    ) -> MarkdownContainer? {
         if self === container {
             return nil
         } else if self.indentRequired {
@@ -75,8 +85,10 @@ open class NestedContainer: MarkdownContainer {
         }
     }
     
-    internal final override func `return`(to container: MarkdownContainer? = nil,
-                                          for docParser: DocumentParser) -> MarkdownContainer {
+    internal final override func `return`(
+        to container: MarkdownContainer? = nil,
+        for docParser: DocumentParser
+    ) -> MarkdownContainer {
         if self === container {
             return self
         } else {

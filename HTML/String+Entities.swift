@@ -1,37 +1,16 @@
-//
-//  String+Entities.swift
-//  MarkdownKit
-//
-//  Created by Matthias Zenger on 13/02/2021.
-//  Copyright © 2021 Google LLC.
-//
-//  Licensed under the Apache License, Version 2.0 (the "License");
-//  you may not use this file except in compliance with the License.
-//  You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-//  Unless required by applicable law or agreed to in writing, software
-//  distributed under the License is distributed on an "AS IS" BASIS,
-//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//  See the License for the specific language governing permissions and
-//  limitations under the License.
-//
-
 import Foundation
 
 extension String {
-    
     public func encodingPredefinedXmlEntities() -> String {
         var res = ""
         var pos = self.startIndex
-        // find the first character that requires encoding
+        // 找到需要编码的第一个字符
         while pos < self.endIndex,
               let index = self.rangeOfCharacter(from: Self.predefinedEntities,
                                                 range: pos..<self.endIndex) {
-            // append the range of unproblematic characters
+            // 追加无问题字符范围
             res.append(contentsOf: self[pos..<index.lowerBound])
-            // encode the character
+            // 对字符进行编码
             switch self[index.lowerBound] {
             case "\"":
                 res.append(contentsOf: "&quot;")

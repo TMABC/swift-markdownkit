@@ -1,73 +1,46 @@
-//
-//  ExtendedMarkdownParser.swift
-//  MarkdownKit
-//
-//  Created by Matthias Zenger on 17/07/2020.
-//  Copyright © 2020 Google LLC.
-//
-//  Licensed under the Apache License, Version 2.0 (the "License");
-//  you may not use this file except in compliance with the License.
-//  You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-//  Unless required by applicable law or agreed to in writing, software
-//  distributed under the License is distributed on an "AS IS" BASIS,
-//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//  See the License for the specific language governing permissions and
-//  limitations under the License.
-//
-
 import Foundation
 
+/// `ExtendedMarkdownParser`对象用于解析表示为字符串的 Markdown 文本，使用 MarkdownKit 实现的对 CommonMark 规范的所有扩展。
 ///
-/// `ExtendedMarkdownParser` objects are used to parse Markdown text represented as a string
-/// using all extensions to the CommonMark specification implemented by MarkdownKit.
-/// 
-/// The `ExtendedMarkdownParser` object itself defines the configuration of the parser.
-/// It is stateless in the sense that it can be used for parsing many input strings. This
-/// is done via the `parse` function. `parse` returns an abstract syntac tree representing
-/// the Markdown text for the given input string.
+/// `ExtendedMarkdownParser`对象本身定义了解析器的配置。
+/// 从某种意义上说，它是无状态的，因为它可以用于解析许多输入字符串。
+/// 这是通过`parse`函数完成的。`parse`返回一个表示给定输入字符串的 Markdown 文本的抽象语法树。
 ///
-/// The `parse` method of the `ExtendedMarkdownParser` object delegates parsing of the input
-/// string to two types of processors: a `BlockParser` object and an `InlineTransformer`
-/// object. A `BlockParser` parses the Markdown block structure returning an abstract
-/// syntax tree ignoring inline markup. An `InlineTransformer` object is used to parse
-/// a particular type of inline markup within text of Markdown blocks, replacing the
-/// matching text with an abstract syntax tree representing the markup.
+/// `ExtendedMarkdownParser`对象的`parse`方法将输入字符串的解析委托给两种类型的处理器：
+/// 一个`BlockParser`对象和一个`InlineTransformer`对象。
+/// `BlockParser`解析 Markdown 块结构，返回一个忽略内联标记的抽象语法树。
+/// `InlineTransformer`对象用于解析 Markdown 块文本中的特定类型的内联标记，用表示标记的抽象语法树替换匹配的文本。
 ///
-/// The `parse` method of `ExtendedMarkdownParser` operates in two phases: in the first
-/// phase, the block structure of an input string is identified via the `BlockParser`s.
-/// In the second phase, the block structure gets traversed and markup within raw text
-/// gets replaced with a structured representation.
-///
+/// `ExtendedMarkdownParser`的`parse`方法分两个阶段进行：
+/// 在第一阶段，通过“BlockParser”识别输入字符串的块结构
+/// 在第二阶段，遍历块结构，并将原始文本中的标记替换为结构化表示
 open class ExtendedMarkdownParser: MarkdownParser {
-
-  /// The default list of block parsers. The order of this list matters.
-  override open class var defaultBlockParsers: [BlockParser.Type] {
-    return self.blockParsers
-  }
-
-  private static let blockParsers: [BlockParser.Type] = MarkdownParser.headingParsers + [
-    IndentedCodeBlockParser.self,
-    FencedCodeBlockParser.self,
-    HtmlBlockParser.self,
-    LinkRefDefinitionParser.self,
-    BlockquoteParser.self,
-    ExtendedListItemParser.self,
-    TableParser.self
-  ]
-  
-  /// Defines a default implementation
-  override open class var standard: ExtendedMarkdownParser {
-    return self.singleton
-  }
-  
-  private static let singleton: ExtendedMarkdownParser = ExtendedMarkdownParser()
-  
-  /// Factory method to customize document parsing in subclasses.
-  open override func documentParser(blockParsers: [BlockParser.Type],
-                                    input: String) -> DocumentParser {
-    return ExtendedDocumentParser(blockParsers: blockParsers, input: input)
-  }
+    
+    /// 默认的块解析器列表。此列表的顺序很重要。
+    override open class var defaultBlockParsers: [BlockParser.Type] {
+        return self.blockParsers
+    }
+    
+    private static let blockParsers: [BlockParser.Type] = MarkdownParser.headingParsers + [
+        IndentedCodeBlockParser.self,
+        FencedCodeBlockParser.self,
+        HtmlBlockParser.self,
+        LinkRefDefinitionParser.self,
+        BlockquoteParser.self,
+        ExtendedListItemParser.self,
+        TableParser.self
+    ]
+    
+    /// 定义了一个默认实现
+    override open class var standard: ExtendedMarkdownParser {
+        return self.singleton
+    }
+    
+    private static let singleton: ExtendedMarkdownParser = ExtendedMarkdownParser()
+    
+    /// 子类中用于自定义文档解析的工厂方法。
+    open override func documentParser(blockParsers: [BlockParser.Type],
+                                      input: String) -> DocumentParser {
+        return ExtendedDocumentParser(blockParsers: blockParsers, input: input)
+    }
 }

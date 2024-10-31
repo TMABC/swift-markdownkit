@@ -1,61 +1,38 @@
-//
-//  Block.swift
-//  MarkdownKit
-//
-//  Created by Matthias Zenger on 25/04/2019.
-//  Copyright © 2019-2021 Google LLC.
-//
-//  Licensed under the Apache License, Version 2.0 (the "License");
-//  you may not use this file except in compliance with the License.
-//  You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-//  Unless required by applicable law or agreed to in writing, software
-//  distributed under the License is distributed on an "AS IS" BASIS,
-//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//  See the License for the specific language governing permissions and
-//  limitations under the License.
-//
-
 import Foundation
 
-///
-/// Enumeration of Markdown blocks. This enumeration defines the block structure,
-/// i.e. the abstract syntax, of Markdown supported by MarkdownKit. The structure of
-/// inline text is defined by the `Text` struct.
-///
-public enum Block: Equatable, CustomStringConvertible, CustomDebugStringConvertible {
-    case document(Blocks)
-    case blockquote(Blocks)
-    case list(Int?, Bool, Blocks)
-    case listItem(ListType, Bool, Blocks)
+/// Markdown 块的枚举。此枚举定义了由 MarkdownKit 支持的 Markdown 的块结构，即抽象语法。
+/// 内联文本的结构由`MarkdownText`结构体定义
+public enum MarkdownBlock: Equatable, CustomStringConvertible, CustomDebugStringConvertible {
+    case document(MarkdownBlocks)
+    case blockquote(MarkdownBlocks)
+    case list(Int?, Bool, MarkdownBlocks)
+    case listItem(MarkdownListType, Bool, MarkdownBlocks)
     case paragraph(MarkdownText)
     case heading(Int, MarkdownText)
-    case indentedCode(Lines)
-    case fencedCode(String?, Lines)
-    case htmlBlock(Lines)
-    case referenceDef(String, Substring, Lines)
+    case indentedCode(MarkdownLines)
+    case fencedCode(String?, MarkdownLines)
+    case htmlBlock(MarkdownLines)
+    case referenceDef(String, Substring, MarkdownLines)
     case thematicBreak
-    case table(Row, Alignments, Rows)
-    case definitionList(Definitions)
-    case custom(CustomBlock)
+    case table(MarkdownTableRow, MarkdownTableAlignments, MarkdownTableRows)
+    case definitionList(MarkdownDefinitions)
+    case custom(MarkdownCustomBlock)
     
-    /// Returns a description of the block as a string.
+    /// 返回块的描述作为字符串
     public var description: String {
         switch self {
         case .document(let blocks):
-            return "document(\(Block.string(from: blocks))))"
+            return "document(\(MarkdownBlock.string(from: blocks))))"
         case .blockquote(let blocks):
-            return "blockquote(\(Block.string(from: blocks))))"
+            return "blockquote(\(MarkdownBlock.string(from: blocks))))"
         case .list(let start, let tight, let blocks):
             if let start = start {
-                return "list(\(start), \(tight ? "tight" : "loose"), \(Block.string(from: blocks)))"
+                return "list(\(start), \(tight ? "tight" : "loose"), \(MarkdownBlock.string(from: blocks)))"
             } else {
-                return "list(\(tight ? "tight" : "loose"), \(Block.string(from: blocks)))"
+                return "list(\(tight ? "tight" : "loose"), \(MarkdownBlock.string(from: blocks)))"
             }
         case .listItem(let type, let tight, let blocks):
-            return "listItem(\(type), \(tight ? "tight" : "loose"), \(Block.string(from: blocks)))"
+            return "listItem(\(type), \(tight ? "tight" : "loose"), \(MarkdownBlock.string(from: blocks)))"
         case .paragraph(let text):
             return "paragraph(\(text.debugDescription))"
         case .heading(let level, let text):
@@ -111,12 +88,12 @@ public enum Block: Equatable, CustomStringConvertible, CustomDebugStringConverti
         case .thematicBreak:
             return "thematicBreak"
         case .table(let header, let align, let rows):
-            var res = Block.string(from: header) + ", "
+            var res = MarkdownBlock.string(from: header) + ", "
             for a in align {
                 res += a.description
             }
             for row in rows {
-                res += ", " + Block.string(from: row)
+                res += ", " + MarkdownBlock.string(from: row)
             }
             return "table(\(res))"
         case .definitionList(let defs):
@@ -178,7 +155,7 @@ public enum Block: Equatable, CustomStringConvertible, CustomDebugStringConverti
         }
     }
     
-    fileprivate static func string(from blocks: Blocks) -> String {
+    fileprivate static func string(from blocks: MarkdownBlocks) -> String {
         var res = ""
         for block in blocks {
             if res.isEmpty {
@@ -190,7 +167,7 @@ public enum Block: Equatable, CustomStringConvertible, CustomDebugStringConverti
         return res
     }
     
-    fileprivate static func string(from row: Row) -> String {
+    fileprivate static func string(from row: MarkdownTableRow) -> String {
         var res = "row("
         for cell in row {
             if res.isEmpty {
@@ -202,8 +179,8 @@ public enum Block: Equatable, CustomStringConvertible, CustomDebugStringConverti
         return res + ")"
     }
     
-    /// Defines an equality relation for two blocks.
-    public static func == (lhs: Block, rhs: Block) -> Bool {
+    /// 为两个块定义相等关系
+    public static func == (lhs: MarkdownBlock, rhs: MarkdownBlock) -> Bool {
         switch (lhs, rhs) {
         case (.document(let lblocks), .document(let rblocks)):
             return lblocks == rblocks
@@ -239,10 +216,8 @@ public enum Block: Equatable, CustomStringConvertible, CustomDebugStringConverti
     }
 }
 
-///
-/// Enumeration of Markdown list types.
-///
-public enum ListType: Equatable, CustomStringConvertible, CustomDebugStringConvertible {
+/// Markdown 列表类型的枚举
+public enum MarkdownListType: Equatable, CustomStringConvertible, CustomDebugStringConvertible {
     case bullet(Character)
     case ordered(Int, Character)
     
@@ -255,7 +230,7 @@ public enum ListType: Equatable, CustomStringConvertible, CustomDebugStringConve
         }
     }
     
-    public func compatible(with other: ListType) -> Bool {
+    public func compatible(with other: MarkdownListType) -> Bool {
         switch (self, other) {
         case (.bullet(let lc), .bullet(let rc)):
             return lc == rc
@@ -280,16 +255,12 @@ public enum ListType: Equatable, CustomStringConvertible, CustomDebugStringConve
     }
 }
 
-///
-/// Rows are arrays of text.
-///
-public typealias Row = ContiguousArray<MarkdownText>
-public typealias Rows = ContiguousArray<Row>
+/// 行是文本数组
+public typealias MarkdownTableRow = ContiguousArray<MarkdownText>
+public typealias MarkdownTableRows = ContiguousArray<MarkdownTableRow>
 
-///
-/// Column alignments are represented as arrays of `Alignment` enum values
-/// 
-public enum Alignment: UInt, CustomStringConvertible, CustomDebugStringConvertible {
+/// 列对齐方式表示为`Alignment`枚举值的数组
+public enum MarkdownTableAlignment: UInt, CustomStringConvertible, CustomDebugStringConvertible {
     case undefined = 0
     case left = 1
     case right = 2
@@ -313,19 +284,19 @@ public enum Alignment: UInt, CustomStringConvertible, CustomDebugStringConvertib
     }
 }
 
-public typealias Alignments = ContiguousArray<Alignment>
+public typealias MarkdownTableAlignments = ContiguousArray<MarkdownTableAlignment>
 
-public struct Definition: Equatable, CustomStringConvertible, CustomDebugStringConvertible {
+public struct MarkdownDefinition: Equatable, CustomStringConvertible, CustomDebugStringConvertible {
     public let item: MarkdownText
-    public let descriptions: Blocks
+    public let descriptions: MarkdownBlocks
     
-    public init(item: MarkdownText, descriptions: Blocks) {
+    public init(item: MarkdownText, descriptions: MarkdownBlocks) {
         self.item = item
         self.descriptions = descriptions
     }
     
     public var description: String {
-        return "\(self.item.debugDescription) : \(Block.string(from: self.descriptions))"
+        return "\(self.item.debugDescription) : \(MarkdownBlock.string(from: self.descriptions))"
     }
     
     public var debugDescription: String {
@@ -337,4 +308,4 @@ public struct Definition: Equatable, CustomStringConvertible, CustomDebugStringC
     }
 }
 
-public typealias Definitions = ContiguousArray<Definition>
+public typealias MarkdownDefinitions = ContiguousArray<MarkdownDefinition>

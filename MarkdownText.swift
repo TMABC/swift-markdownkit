@@ -1,29 +1,7 @@
-//
-//  Text.swift
-//  MarkdownKit
-//
-//  Created by Matthias Zenger on 30/05/2019.
-//  Copyright © 2019 Google LLC.
-//
-//  Licensed under the Apache License, Version 2.0 (the "License");
-//  you may not use this file except in compliance with the License.
-//  You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-//  Unless required by applicable law or agreed to in writing, software
-//  distributed under the License is distributed on an "AS IS" BASIS,
-//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//  See the License for the specific language governing permissions and
-//  limitations under the License.
-//
-
 import Foundation
 
-///
-/// Struct `Text` is used to represent inline text. A `Text` struct consists of a sequence
-/// of `TextFragment` objects.
-///
+/// 结构体`Text`用于表示内联文本
+/// 一个`Text`结构体由一系列的`TextFragment`对象组成
 public struct MarkdownText: Collection, Equatable, CustomStringConvertible, CustomDebugStringConvertible {
     public typealias Index = ContiguousArray<MarkdownTextFragment>.Index
     public typealias Iterator = ContiguousArray<MarkdownTextFragment>.Iterator
@@ -123,19 +101,17 @@ public struct MarkdownText: Collection, Equatable, CustomStringConvertible, Cust
         return res
     }
     
-    /// Returns a raw description of this `Text` object as a string, i.e. as if the text
-    /// would be represented in Markdown but ignoring all markup.
+    /// 返回此`Text`对象的原始描述字符串，即如同文本以 Markdown 表示但忽略所有标记
     public var rawDescription: String {
         return self.fragments.map { $0.rawDescription }.joined()
     }
     
-    /// Returns a raw description of this `Text` object as a string for which all markup
-    /// gets ignored.
+    /// 返回此`Text`对象的一个原始描述字符串，其中所有标记都被忽略
     public var string: String {
         return self.fragments.map { $0.string }.joined()
     }
     
-    /// Returns a debug description of this `Text` object.
+    /// 返回此`Text`对象的调试描述
     public var debugDescription: String {
         var res = ""
         for fragment in self.fragments {
@@ -148,7 +124,7 @@ public struct MarkdownText: Collection, Equatable, CustomStringConvertible, Cust
         return res
     }
     
-    /// Finalizes the `Text` object by removing trailing line breaks.
+    /// 通过移除尾部换行符来完成`Text`对象的最终化
     public func finalized() -> MarkdownText {
         if let lastLine = self.fragments.last {
             switch lastLine {
@@ -164,7 +140,7 @@ public struct MarkdownText: Collection, Equatable, CustomStringConvertible, Cust
         }
     }
     
-    /// Defines an equality relationship for `Text` objects.
+    /// 为`Text`对象定义了一种相等关系
     public static func == (lhs: MarkdownText, rhs: MarkdownText) -> Bool {
         return lhs.fragments == rhs.fragments
     }
